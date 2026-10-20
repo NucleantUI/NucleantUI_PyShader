@@ -127,7 +127,7 @@ struct PyShaderFunctionCompiling {
         #expect(PyShaderFunction(Self.compute, input: input) != PyShaderFunction(Self.compute, input: ShaderNoArguments()))
     }
 
-    /// It goes where any `ShaderProtocol` goes.
+    /// It is a `ShaderProtocol` type: `Shader<PyShaderFunction<…>>`.
     @Test
     func itIsAShaderView() {
         let view = Shader(PyShaderFunction(Self.compute))

@@ -2,10 +2,11 @@
 
 PyShader source compiled at run time into a NucleantUI shader.
 
-NucleantUI runs SPIR-V and nothing else: any `ShaderProtocol` — a module and
-the input it reads. This package adds `PyShaderFunction`, a `ShaderProtocol`
-whose module is compiled by [PyShader](https://github.com/NucleantUI/PyShader)
-from Python source — a string, or a `.py` file — while the app runs.
+NucleantUI runs SPIR-V and nothing else: `Shader` and `.shader(_:)` are
+generic over a `ShaderProtocol` type — a module and the input it reads. This
+package adds `PyShaderFunction`, a `ShaderProtocol` whose module is compiled
+by [PyShader](https://github.com/NucleantUI/PyShader) from Python source — a
+string, or a `.py` file — while the app runs.
 
 ```swift
 import NucleantUI

@@ -21,6 +21,8 @@ final class Lab {
     /// What the compiler said about the source last run, if it refused it.
     private(set) var error: String?
     private(set) var vertices: Int
+    /// Whether the shader runs over the sample card, as an effect.
+    private(set) var isEffect: Bool
     /// The template the source came from, while it is still that template.
     private(set) var template: Template?
 
@@ -28,6 +30,7 @@ final class Lab {
         let first = Template.all[0]
         source = first.source
         vertices = first.vertices
+        isEffect = first.isEffect
         template = first
         running = PyShaderFunction(first.source, input: knobs)
     }
@@ -43,6 +46,7 @@ final class Lab {
     func load(_ template: Template) {
         source = template.source
         vertices = template.vertices
+        isEffect = template.isEffect
         self.template = template
         run()
     }

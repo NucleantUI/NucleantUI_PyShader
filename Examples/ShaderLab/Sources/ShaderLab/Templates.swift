@@ -9,6 +9,9 @@ struct Template: Identifiable, Hashable {
     let source: String
     /// For a vertex + fragment pair: vertices per draw.
     let vertices: Int
+    /// Run over a view with `.shader(_:)`, reading it with `layer(uv)`,
+    /// rather than drawn on its own.
+    var isEffect = false
 
     var id: String { name }
 
@@ -59,5 +62,13 @@ struct Template: Identifiable, Hashable {
             def fragment(v: V, knobs: Knobs) -> float4:
                 return float4(mix(knobs.tint.xyz, float3(v.uv, 1.0), knobs.c), 1.0)
             """, vertices: 3),
+        Template(name: "Ripple", source: knobs + """
+
+
+            def main(uv: float2, time: float, knobs: Knobs) -> float4:
+                wave = sin(uv.y * (10.0 + knobs.a * 60.0) + time * 4.0)
+                c = layer(uv + float2(wave * 0.03 * knobs.b, 0.0))
+                return float4(mix(c.xyz, knobs.tint.xyz * c.w, knobs.c), c.w)
+            """, vertices: 6, isEffect: true),
     ]
 }

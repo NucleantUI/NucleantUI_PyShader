@@ -9,6 +9,11 @@
 //  PyShader's build plugin. Errors from the compiler are shown under the
 //  editor, while the shader that last compiled keeps running.
 //
+//  An effect template runs over a card of ordinary views instead, through
+//  `.shader(_:)`, which is generic over the `ShaderProtocol` type as
+//  `Shader` is: the card is drawn into a layer the shader reads with
+//  `layer(uv)`.
+//
 //  The sliders are the `Knobs` class every template takes as `knobs`: a
 //  slider changes the model, and the shader reads the change through
 //  observation without the preview being rebuilt.
@@ -46,13 +51,46 @@ struct RootView {
     }
 }
 
-/// The running shader. Reads which shader is running, not the knobs.
+/// The running shader — on its own, or as an effect over a sample card,
+/// which it reads with `layer(uv)`. Reads which shader is running, not the
+/// knobs.
 @View
 struct Preview {
     let lab: Lab
 
     var body: some View {
-        Shader(lab.running, vertices: lab.vertices)
+        if lab.isEffect {
+            SampleCard()
+                .shader(lab.running)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Shader(lab.running, vertices: lab.vertices)
+        }
+    }
+}
+
+/// What an effect template runs over: an ordinary card of views.
+@View
+struct SampleCard {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Now Playing")
+                .font(.footnote)
+                .foregroundColor(Theme.faint)
+            Text("Shaders in Python")
+                .font(.system(size: 26, weight: .bold))
+            HStack(spacing: 10) {
+                Circle().fill(Theme.accent).frame(width: 18, height: 18)
+                Capsule().fill(Color(hex: 0x3DF5A0)).frame(width: 140, height: 10)
+                Capsule().fill(Color(hex: 0xFF7A1A)).frame(width: 60, height: 10)
+            }
+            Text("Every pixel here is drawn by the views first, then read by the shader through layer(uv).")
+                .foregroundColor(Theme.faint)
+        }
+        .padding(24)
+        .frame(width: 420)
+        .background(Theme.panel)
+        .cornerRadius(16)
     }
 }
 

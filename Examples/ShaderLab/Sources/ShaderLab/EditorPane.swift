@@ -12,10 +12,11 @@ struct EditorPane {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 ForEach(Template.all) { template in
                     Text(template.name)
-                        .padding(horizontal: 10, vertical: 5)
+                        .font(.system(size: 14))
+                        .padding(horizontal: 8, vertical: 5)
                         .background(lab.template == template ? Theme.accent.opacity(0.3) : Theme.editor)
                         .cornerRadius(6)
                         .onTapGesture { lab.load(template) }

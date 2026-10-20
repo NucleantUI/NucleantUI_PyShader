@@ -37,14 +37,19 @@ final class PyShaderModules {
     /// The compute target first; the graphics one only if that fails. The
     /// error, when both do, is both of theirs, since the source does not say
     /// which it was meant as.
+    ///
+    /// Both with the content image at binding 2, y-up, which is how
+    /// `.shader(_:)` hands a module the view under it: PyShader declares it
+    /// only when the source calls `layer(uv)`, so a source that does not is
+    /// the same module either way.
     private static func cached(_ key: String, _ compile: (ShaderTarget) throws -> CompiledShader) -> Compiled {
         if let hit = compiled[key] { return hit }
         let result: Compiled
         do {
-            result = Compiled(words: try compile(.nucleantUI).spirv, error: nil)
+            result = Compiled(words: try compile(.computeImage(.nucleantUI(samplesContent: true))).spirv, error: nil)
         } catch let computeError {
             do {
-                result = Compiled(words: try compile(.nucleantUIGraphics).spirv, error: nil)
+                result = Compiled(words: try compile(.graphics(.nucleantUI(samplesContent: true, arguments: []))).spirv, error: nil)
             } catch let graphicsError {
                 result = Compiled(
                     words: [],
