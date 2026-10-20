@@ -58,7 +58,10 @@ swift build && .build/debug/ShaderLab
 
 ## Dependencies
 
-NucleantUI and PyShader by release, up to the next minor; the sibling
-checkouts (`../NucleantUI`, `../PyShader`) under `NUCLEANT_LOCAL_DEV=1`.
-`ShaderProtocol` is not in a NucleantUI release yet (0.0.2), so for now this
-builds with `NUCLEANT_LOCAL_DEV=1`.
+NucleantUI (from 0.0.3) and PyShader (from 0.0.4) by release, up to the
+next minor; the sibling checkouts (`../NucleantUI`, `../PyShader`) under
+`NUCLEANT_LOCAL_DEV=1`.
+
+```swift
+.package(url: "https://github.com/NucleantUI/NucleantUI_PyShader.git", .upToNextMinor(from: "0.0.1"))
+```
