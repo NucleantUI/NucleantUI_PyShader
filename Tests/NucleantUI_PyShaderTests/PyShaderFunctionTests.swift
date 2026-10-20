@@ -134,3 +134,56 @@ struct PyShaderFunctionCompiling {
         _ = view
     }
 }
+
+/// Named textures and the content image, as NucleantUI binds them.
+@MainActor
+struct PyShaderFunctionImages {
+
+    /// `(binding, set)` of every decorated binding, sorted.
+    private func bindings(_ words: [UInt32]) -> [UInt32] {
+        var bindings: [UInt32] = []
+        var index = 5
+        while index < words.count {
+            let count = Int(words[index] >> 16)
+            // OpDecorate target Binding n
+            if words[index] & 0xFFFF == 71, count >= 4, words[index + 2] == 33 {
+                bindings.append(words[index + 3])
+            }
+            index += max(count, 1)
+        }
+        return bindings.sorted()
+    }
+
+    @Test
+    func texturesAreBoundFromFourInOrder() {
+        let function = PyShaderFunction("""
+            def main(uv: float2, a: Texture, b: Texture) -> float4:
+                return mix(a(uv), b(uv), 0.5)
+            """, textures: ["a", "b"])
+        #expect(function.error == nil)
+        #expect(bindings(function.spirv) == [0, 1, 4, 5])
+    }
+
+    /// Names it does not know are not textures, so the source is refused.
+    @Test
+    func anUndeclaredTextureIsRefused() {
+        let function = PyShaderFunction("""
+            def main(uv: float2, a: Texture) -> float4:
+                return a(uv)
+            """)
+        #expect(function.spirv.isEmpty)
+        #expect(function.error != nil)
+    }
+
+    /// `layer(uv)` declares the content image at 2; a source that does not
+    /// call it has none.
+    @Test
+    func layerIsTheContentImage() {
+        let effect = PyShaderFunction("""
+            def main(uv: float2) -> float4:
+                return layer(uv)
+            """)
+        #expect(bindings(effect.spirv) == [0, 1, 2])
+        #expect(bindings(PyShaderFunction("def main(uv: float2) -> float4:\n    return float4(1.0)\n").spirv) == [0, 1])
+    }
+}

@@ -37,6 +37,12 @@ import PyShader
 /// of the entry point, read whole (see PyShader's class input), packed by
 /// `input`.
 ///
+/// `textures` names the `RenderTexture`s it samples — each a `name: Texture`
+/// parameter, `name(uv)` in the body — in the order the view's `textures:`
+/// hands them over (`Shader(_:textures:)`, `.shader(_:textures:)`), which
+/// binds them at 4 and up. Under `.shader(_:)` and `tex.shader(_:)`,
+/// `layer(uv)` reads the view or texture the effect is over.
+///
 /// Compiled once per source for the life of the app, so a view rebuilt with
 /// the same source does not compile it again. Source that does not compile
 /// is an empty module, which draws nothing, and the reason is in `error`.
@@ -49,15 +55,15 @@ public struct PyShaderFunction<Input: ShaderInput>: ShaderProtocol {
 
     /// `source`, a whole PyShader module.
     @MainActor
-    public init(_ source: String, input: Input, isAnimated: Bool = true) {
-        self.init(compiled: PyShaderModules.compile(source: source), input: input, isAnimated: isAnimated)
+    public init(_ source: String, textures: [String] = [], input: Input, isAnimated: Bool = true) {
+        self.init(compiled: PyShaderModules.compile(source: source, textures: textures), input: input, isAnimated: isAnimated)
     }
 
     /// The `.py` file at `url`; its imports are found beside it and in the
     /// nearest uv `.venv`, as `pyshaderc` finds them.
     @MainActor
-    public init(contentsOf url: URL, input: Input, isAnimated: Bool = true) {
-        self.init(compiled: PyShaderModules.compile(file: url), input: input, isAnimated: isAnimated)
+    public init(contentsOf url: URL, textures: [String] = [], input: Input, isAnimated: Bool = true) {
+        self.init(compiled: PyShaderModules.compile(file: url, textures: textures), input: input, isAnimated: isAnimated)
     }
 
     private init(compiled: PyShaderModules.Compiled, input: Input, isAnimated: Bool) {
@@ -71,14 +77,14 @@ public struct PyShaderFunction<Input: ShaderInput>: ShaderProtocol {
 extension PyShaderFunction where Input == ShaderNoArguments {
     /// A module that takes no input.
     @MainActor
-    public init(_ source: String, isAnimated: Bool = true) {
-        self.init(source, input: ShaderNoArguments(), isAnimated: isAnimated)
+    public init(_ source: String, textures: [String] = [], isAnimated: Bool = true) {
+        self.init(source, textures: textures, input: ShaderNoArguments(), isAnimated: isAnimated)
     }
 
     /// A `.py` file that takes no input.
     @MainActor
-    public init(contentsOf url: URL, isAnimated: Bool = true) {
-        self.init(contentsOf: url, input: ShaderNoArguments(), isAnimated: isAnimated)
+    public init(contentsOf url: URL, textures: [String] = [], isAnimated: Bool = true) {
+        self.init(contentsOf: url, textures: textures, input: ShaderNoArguments(), isAnimated: isAnimated)
     }
 }
 
@@ -88,20 +94,22 @@ extension PyShaderFunction {
     @MainActor
     public init<each Value: ShaderValue>(
         _ source: String,
+        textures: [String] = [],
         isAnimated: Bool = true,
         @ShaderArgumentsBuilder arguments: @escaping @MainActor () -> (repeat each Value)
     ) where Input == ShaderTupleArguments<repeat each Value> {
-        self.init(source, input: ShaderTupleArguments(arguments), isAnimated: isAnimated)
+        self.init(source, textures: textures, input: ShaderTupleArguments(arguments), isAnimated: isAnimated)
     }
 
     /// A `.py` file whose input is the values `arguments` lists, in order.
     @MainActor
     public init<each Value: ShaderValue>(
         contentsOf url: URL,
+        textures: [String] = [],
         isAnimated: Bool = true,
         @ShaderArgumentsBuilder arguments: @escaping @MainActor () -> (repeat each Value)
     ) where Input == ShaderTupleArguments<repeat each Value> {
-        self.init(contentsOf: url, input: ShaderTupleArguments(arguments), isAnimated: isAnimated)
+        self.init(contentsOf: url, textures: textures, input: ShaderTupleArguments(arguments), isAnimated: isAnimated)
     }
 }
 
